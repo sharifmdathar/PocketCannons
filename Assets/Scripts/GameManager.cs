@@ -1,42 +1,57 @@
-using UnityEngine;
 using System;
+using UnityEngine;
 
-public class GameManager : MonoBehaviour
+namespace Assets.Scripts
 {
-    public static GameManager Instance { get; private set; }
-
-    public event Action<int> OnAngleChanged;
-
-    [SerializeField] private int currentAngle = 0;
-    public int CurrentAngle 
+    public class GameManager : MonoBehaviour
     {
-        get => currentAngle;
-        private set
+        public static GameManager Instance { get; private set; }
+
+        public event Action<int> OnAngleChanged;
+
+        [SerializeField] private int _currentAngle;
+
+        public int CurrentAngle
         {
-            currentAngle = value;
-            OnAngleChanged?.Invoke(currentAngle);
-        }
-    }
+            get => _currentAngle;
+            private set
+            {
+                _currentAngle = value;
 
-    private void Awake()
-    {
-        if (Instance == null)
+                switch (_currentAngle)
+                {
+                    case >= 360:
+                        _currentAngle -= 360;
+                        break;
+                    case < 0:
+                        _currentAngle += 360;
+                        break;
+                }
+
+                OnAngleChanged?.Invoke(_currentAngle);
+            }
+        }
+
+        private void Awake()
         {
-            Instance = this;
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
-        else
+
+        public void IncrementAngle()
         {
-            Destroy(gameObject);
+            CurrentAngle++;
         }
-    }
 
-    public void IncrementAngle()
-    {
-        CurrentAngle++;
-    }
-
-    public void DecrementAngle()
-    {
-        CurrentAngle--;
+        public void DecrementAngle()
+        {
+            CurrentAngle--;
+        }
     }
 }
