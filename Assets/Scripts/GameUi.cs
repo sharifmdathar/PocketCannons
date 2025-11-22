@@ -13,6 +13,7 @@ namespace Assets.Scripts
         [SerializeField] private Slider powerSlider;
         [SerializeField] private TextMeshProUGUI powerTMP;
         [SerializeField] private Button fireButton;
+        [SerializeField] private GameObject radialSliderPopup;
 
         private float _lastClickTime;
         private const float DoubleClickTime = 0.3f;
@@ -121,6 +122,39 @@ namespace Assets.Scripts
             if (Time.time - _lastClickTime < DoubleClickTime)
             {
                 EnableAngleEditing();
+                // Hide slider if it was opened by the first click
+                if (radialSliderPopup != null)
+                {
+                    radialSliderPopup.SetActive(false);
+                }
+            }
+            else
+            {
+                // Single click - Toggle Slider
+                if (radialSliderPopup != null)
+                {
+                    bool isSliderActive = !radialSliderPopup.activeSelf;
+                    radialSliderPopup.SetActive(isSliderActive);
+
+                    if (isSliderActive)
+                    {
+                        // Subscribe to close event
+                        var sliderScript = radialSliderPopup.GetComponent<RadialSlider>();
+                        if (sliderScript != null)
+                        {
+                            sliderScript.OnCloseRequested = () =>
+                            {
+                                radialSliderPopup.SetActive(false);
+                                if (angleTMP != null) angleTMP.gameObject.SetActive(true);
+                            };
+                        }
+                    }
+
+                    if (angleTMP != null)
+                    {
+                        angleTMP.gameObject.SetActive(!isSliderActive);
+                    }
+                }
             }
 
             _lastClickTime = Time.time;
