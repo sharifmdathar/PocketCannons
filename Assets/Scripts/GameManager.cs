@@ -16,17 +16,7 @@ namespace Assets.Scripts
             get => _currentAngle;
             private set
             {
-                _currentAngle = value;
-
-                switch (_currentAngle)
-                {
-                    case >= 360:
-                        _currentAngle -= 360;
-                        break;
-                    case < 0:
-                        _currentAngle += 360;
-                        break;
-                }
+                _currentAngle = (value % 360 + 360) % 360;
 
                 OnAngleChanged?.Invoke(_currentAngle);
             }
@@ -52,6 +42,11 @@ namespace Assets.Scripts
         public void DecrementAngle()
         {
             CurrentAngle--;
+        }
+
+        public void SetAngle(int angle)
+        {
+            CurrentAngle = angle;
         }
     }
 }

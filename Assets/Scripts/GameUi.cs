@@ -6,18 +6,51 @@ namespace Assets.Scripts
 {
     public class GameUi : MonoBehaviour
     {
+        [SerializeField] private TextMeshProUGUI angleTMP;
         [SerializeField] private Button incrementAngleButton;
         [SerializeField] private Button decrementAngleButton;
-        [SerializeField] private TextMeshProUGUI angleTMP;
+        [SerializeField] private TMP_InputField angleInputField;
+
+        private float _lastClickTime;
+        private const float DoubleClickTime = 0.3f;
 
         void Start()
         {
             incrementAngleButton.onClick.AddListener(OnIncrementAngleClicked);
             decrementAngleButton.onClick.AddListener(OnDecrementAngleClicked);
 
+            if (angleInputField != null)
+            {
+                angleInputField.gameObject.SetActive(false);
+                angleInputField.onEndEdit.AddListener(OnAngleInputSubmitted);
+                angleInputField.onValueChanged.AddListener(OnAngleInputValueChanged);
+
+                angleInputField.contentType = TMP_InputField.ContentType.Custom;
+                angleInputField.keyboardType = TouchScreenKeyboardType.NumberPad;
+                angleInputField.onValidateInput += ValidateAngleInput;
+            }
+
             UpdateAngleText(GameManager.Instance.CurrentAngle);
 
             GameManager.Instance.OnAngleChanged += UpdateAngleText;
+        }
+
+        private char ValidateAngleInput(string text, int charIndex, char addedChar)
+        {
+            if (text.Contains("°") && charIndex > text.IndexOf("°"))
+            {
+                return '\0';
+            }
+            return char.IsDigit(addedChar) ? addedChar : '\0';
+        }
+
+        private void OnAngleInputValueChanged(string value)
+        {
+            if (!value.EndsWith("°"))
+            {
+                angleInputField.text = value + "°";
+                angleInputField.caretPosition = angleInputField.text.Length - 1;
+            }
         }
 
         private void OnDestroy()
@@ -41,6 +74,39 @@ namespace Assets.Scripts
         private void UpdateAngleText(int newAngle)
         {
             angleTMP.text = $"Angle: {newAngle}°";
+        }
+
+        public void OnAngleTextClicked()
+        {
+            if (Time.time - _lastClickTime < DoubleClickTime)
+            {
+                EnableAngleEditing();
+            }
+            _lastClickTime = Time.time;
+        }
+
+        private void EnableAngleEditing()
+        {
+            if (angleInputField == null) return;
+
+            angleTMP.gameObject.SetActive(false);
+            angleInputField.gameObject.SetActive(true);
+            angleInputField.text = $"{GameManager.Instance.CurrentAngle}°";
+            angleInputField.ActivateInputField();
+            
+            angleInputField.caretPosition = angleInputField.text.Length - 1;
+        }
+
+        private void OnAngleInputSubmitted(string value)
+        {
+            string cleanValue = value.Replace("°", "");
+            if (int.TryParse(cleanValue, out int result))
+            {
+                GameManager.Instance.SetAngle(result);
+            }
+
+            angleInputField.gameObject.SetActive(false);
+            angleTMP.gameObject.SetActive(true);
         }
     }
 }
