@@ -9,6 +9,7 @@ namespace Assets.Scripts
 
         public event Action<int> OnAngleChanged;
         public event Action<float> OnPowerChanged;
+        public event Action OnFire;
 
         [SerializeField] private int _currentAngle = 60;
         [SerializeField] private float _currentPower = 70f;
@@ -64,6 +65,11 @@ namespace Assets.Scripts
         public void SetPower(float power)
         {
             CurrentPower = power;
+        }
+
+        public void Fire()
+        {
+            OnFire?.Invoke();
         }
     }
 }

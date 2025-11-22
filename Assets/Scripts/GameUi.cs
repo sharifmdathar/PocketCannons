@@ -12,6 +12,7 @@ namespace Assets.Scripts
         [SerializeField] private TMP_InputField angleInputField;
         [SerializeField] private Slider powerSlider;
         [SerializeField] private TextMeshProUGUI powerTMP;
+        [SerializeField] private Button fireButton;
 
         private float _lastClickTime;
         private const float DoubleClickTime = 0.3f;
@@ -35,6 +36,11 @@ namespace Assets.Scripts
             if (powerSlider != null)
             {
                 powerSlider.onValueChanged.AddListener(OnPowerSliderChanged);
+            }
+
+            if (fireButton != null)
+            {
+                fireButton.onClick.AddListener(OnFireClicked);
             }
 
             UpdateAngleText(GameManager.Instance.CurrentAngle);
@@ -103,6 +109,11 @@ namespace Assets.Scripts
         private void OnPowerSliderChanged(float value)
         {
             GameManager.Instance.SetPower(value);
+        }
+
+        private static void OnFireClicked()
+        {
+            GameManager.Instance.Fire();
         }
 
         public void OnAngleTextClicked()
