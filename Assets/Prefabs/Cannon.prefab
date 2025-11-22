@@ -291,3 +291,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CannonController
   barrelTransform: {fileID: 1280147597620840057}
+  projectilePrefab: {fileID: 0}
+  firePoint: {fileID: 0}
+  maxForce: 20

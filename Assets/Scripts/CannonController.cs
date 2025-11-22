@@ -31,7 +31,7 @@ public class CannonController : MonoBehaviour
 
         GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
         Rigidbody2D rb = projectile.GetComponent<Rigidbody2D>();
-        
+
         if (rb != null)
         {
             float powerPercentage = GameManager.Instance.CurrentPower / 100f;
