@@ -8,8 +8,10 @@ namespace Assets.Scripts
         public static GameManager Instance { get; private set; }
 
         public event Action<int> OnAngleChanged;
+        public event Action<float> OnPowerChanged;
 
-        [SerializeField] private int _currentAngle;
+        [SerializeField] private int _currentAngle = 60;
+        [SerializeField] private float _currentPower = 70f;
 
         public int CurrentAngle
         {
@@ -19,6 +21,16 @@ namespace Assets.Scripts
                 _currentAngle = (value % 360 + 360) % 360;
 
                 OnAngleChanged?.Invoke(_currentAngle);
+            }
+        }
+
+        public float CurrentPower
+        {
+            get => _currentPower;
+            private set
+            {
+                _currentPower = Mathf.Clamp(value, 0f, 100f);
+                OnPowerChanged?.Invoke(_currentPower);
             }
         }
 
@@ -47,6 +59,11 @@ namespace Assets.Scripts
         public void SetAngle(int angle)
         {
             CurrentAngle = angle;
+        }
+
+        public void SetPower(float power)
+        {
+            CurrentPower = power;
         }
     }
 }

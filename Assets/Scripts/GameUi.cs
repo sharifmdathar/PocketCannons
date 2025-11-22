@@ -10,6 +10,8 @@ namespace Assets.Scripts
         [SerializeField] private Button incrementAngleButton;
         [SerializeField] private Button decrementAngleButton;
         [SerializeField] private TMP_InputField angleInputField;
+        [SerializeField] private Slider powerSlider;
+        [SerializeField] private TextMeshProUGUI powerTMP;
 
         private float _lastClickTime;
         private const float DoubleClickTime = 0.3f;
@@ -30,9 +32,16 @@ namespace Assets.Scripts
                 angleInputField.onValidateInput += ValidateAngleInput;
             }
 
+            if (powerSlider != null)
+            {
+                powerSlider.onValueChanged.AddListener(OnPowerSliderChanged);
+            }
+
             UpdateAngleText(GameManager.Instance.CurrentAngle);
+            UpdatePowerUI(GameManager.Instance.CurrentPower);
 
             GameManager.Instance.OnAngleChanged += UpdateAngleText;
+            GameManager.Instance.OnPowerChanged += UpdatePowerUI;
         }
 
         private char ValidateAngleInput(string text, int charIndex, char addedChar)
@@ -41,6 +50,7 @@ namespace Assets.Scripts
             {
                 return '\0';
             }
+
             return char.IsDigit(addedChar) ? addedChar : '\0';
         }
 
@@ -58,6 +68,7 @@ namespace Assets.Scripts
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnAngleChanged -= UpdateAngleText;
+                GameManager.Instance.OnPowerChanged -= UpdatePowerUI;
             }
         }
 
@@ -76,12 +87,31 @@ namespace Assets.Scripts
             angleTMP.text = $"Angle: {newAngle}°";
         }
 
+        private void UpdatePowerUI(float newPower)
+        {
+            if (powerSlider != null)
+            {
+                powerSlider.SetValueWithoutNotify(newPower);
+            }
+
+            if (powerTMP != null)
+            {
+                powerTMP.text = $"Power: {newPower:F0}%";
+            }
+        }
+
+        private void OnPowerSliderChanged(float value)
+        {
+            GameManager.Instance.SetPower(value);
+        }
+
         public void OnAngleTextClicked()
         {
             if (Time.time - _lastClickTime < DoubleClickTime)
             {
                 EnableAngleEditing();
             }
+
             _lastClickTime = Time.time;
         }
 
@@ -93,7 +123,7 @@ namespace Assets.Scripts
             angleInputField.gameObject.SetActive(true);
             angleInputField.text = $"{GameManager.Instance.CurrentAngle}°";
             angleInputField.ActivateInputField();
-            
+
             angleInputField.caretPosition = angleInputField.text.Length - 1;
         }
 
