@@ -35,11 +35,9 @@ public class CannonController : MonoBehaviour
 
     private void Update()
     {
-        if (turnIndicator != null && turnIndicator.activeSelf)
-        {
-            float yOffset = Mathf.Sin(Time.time * indicatorSpeed) * indicatorAmplitude;
-            turnIndicator.transform.localPosition = _indicatorInitialPos + Vector3.up * yOffset;
-        }
+        if (turnIndicator == null || !turnIndicator.activeSelf) return;
+        float yOffset = Mathf.Sin(Time.time * indicatorSpeed) * indicatorAmplitude;
+        turnIndicator.transform.localPosition = _indicatorInitialPos + Vector3.up * yOffset;
     }
 
     private void OnDestroy()

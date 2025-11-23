@@ -14,7 +14,9 @@ public class GameUi : MonoBehaviour
     [SerializeField] private Button fireButton;
     [SerializeField] private GameObject radialSliderPopup;
     [SerializeField] private Slider p1HealthSlider;
+    [SerializeField] private Image p1FillImage;
     [SerializeField] private Slider p2HealthSlider;
+    [SerializeField] private Image p2FillImage;
 
     private float _lastClickTime;
     private const float DoubleClickTime = 0.3f;
@@ -114,11 +116,17 @@ public class GameUi : MonoBehaviour
         switch (player)
         {
             case GameManager.Turn.Player1 when p1HealthSlider != null:
+            {
                 p1HealthSlider.value = health;
+                if (p1FillImage != null) p1FillImage.color = Color.Lerp(Color.red, Color.green, health / 100f);
                 break;
+            }
             case GameManager.Turn.Player2 when p2HealthSlider != null:
+            {
                 p2HealthSlider.value = health;
+                if (p2FillImage != null) p2FillImage.color = Color.Lerp(Color.red, Color.green, health / 100f);
                 break;
+            }
             default:
                 throw new ArgumentOutOfRangeException(nameof(player), player, null);
         }
