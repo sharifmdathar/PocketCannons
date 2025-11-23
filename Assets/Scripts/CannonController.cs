@@ -7,11 +7,13 @@ public class CannonController : MonoBehaviour
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private float maxForce = 20f;
+    [SerializeField] private GameObject turnIndicator;
 
     private void Start()
     {
         if (GameManager.Instance == null) return;
 
+        UpdateTurnIndicator(GameManager.Instance.CurrentTurn);
         if (GameManager.Instance.CurrentTurn == owner)
         {
             UpdateRotation(GameManager.Instance.CurrentAngle);
@@ -19,14 +21,22 @@ public class CannonController : MonoBehaviour
 
         GameManager.Instance.OnAngleChanged += UpdateRotation;
         GameManager.Instance.OnFire += Fire;
+        GameManager.Instance.OnTurnChanged += UpdateTurnIndicator;
     }
 
     private void OnDestroy()
     {
-        if (GameManager.Instance != null)
+        if (GameManager.Instance == null) return;
+        GameManager.Instance.OnAngleChanged -= UpdateRotation;
+        GameManager.Instance.OnFire -= Fire;
+        GameManager.Instance.OnTurnChanged -= UpdateTurnIndicator;
+    }
+
+    private void UpdateTurnIndicator(GameManager.Turn turn)
+    {
+        if (turnIndicator != null)
         {
-            GameManager.Instance.OnAngleChanged -= UpdateRotation;
-            GameManager.Instance.OnFire -= Fire;
+            turnIndicator.SetActive(turn == owner);
         }
     }
 
