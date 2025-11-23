@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameUi : MonoBehaviour
 {
@@ -18,6 +19,9 @@ public class GameUi : MonoBehaviour
     [SerializeField] private Image p2FillImage;
     [SerializeField] private RepeatButton moveLeftButton;
     [SerializeField] private RepeatButton moveRightButton;
+    [SerializeField] private GameObject gameOverPopup;
+    [SerializeField] private TextMeshProUGUI winnerText;
+    [SerializeField] private Button restartButton;
 
     private void Start()
     {
@@ -32,6 +36,11 @@ public class GameUi : MonoBehaviour
         if (moveRightButton != null)
         {
             moveRightButton.onHold.AddListener(() => GameManager.Instance.Move(1f));
+        }
+
+        if (restartButton != null)
+        {
+            restartButton.onClick.AddListener(OnRestartClicked);
         }
 
         if (powerSlider != null)
@@ -50,6 +59,7 @@ public class GameUi : MonoBehaviour
         GameManager.Instance.OnAngleChanged += UpdateAngleText;
         GameManager.Instance.OnPowerChanged += UpdatePowerUI;
         GameManager.Instance.OnHealthChanged += UpdateHealthUI;
+        GameManager.Instance.OnGameOver += OnGameOver;
 
         UpdateHealthUI(GameManager.Turn.Player1, GameManager.Instance.GetHealth(GameManager.Turn.Player1));
         UpdateHealthUI(GameManager.Turn.Player2, GameManager.Instance.GetHealth(GameManager.Turn.Player2));
@@ -61,6 +71,22 @@ public class GameUi : MonoBehaviour
         GameManager.Instance.OnAngleChanged -= UpdateAngleText;
         GameManager.Instance.OnPowerChanged -= UpdatePowerUI;
         GameManager.Instance.OnHealthChanged -= UpdateHealthUI;
+        GameManager.Instance.OnGameOver -= OnGameOver;
+    }
+
+    private void OnGameOver(GameManager.Turn winner)
+    {
+        if (gameOverPopup == null) return;
+        gameOverPopup.SetActive(true);
+        if (winnerText != null)
+        {
+            winnerText.text = $"{winner} Wins!";
+        }
+    }
+
+    private static void OnRestartClicked()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private static void OnIncrementAngleClicked()

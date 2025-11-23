@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     public event Action<float> OnMove;
     public event Action<Turn> OnTurnChanged;
     public event Action<Turn, float> OnHealthChanged;
+    public event Action<Turn> OnGameOver;
 
     [SerializeField] private int _p1Angle = 60;
     [SerializeField] private float _p1Power = 70f;
@@ -105,11 +106,21 @@ public class GameManager : MonoBehaviour
         {
             _p1Health = Mathf.Max(0, _p1Health - damage);
             OnHealthChanged?.Invoke(Turn.Player1, _p1Health);
+
+            if (_p1Health <= 0)
+            {
+                OnGameOver?.Invoke(Turn.Player2);
+            }
         }
         else
         {
             _p2Health = Mathf.Max(0, _p2Health - damage);
             OnHealthChanged?.Invoke(Turn.Player2, _p2Health);
+
+            if (_p2Health <= 0)
+            {
+                OnGameOver?.Invoke(Turn.Player1);
+            }
         }
     }
 
