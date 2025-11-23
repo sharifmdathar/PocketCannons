@@ -8,9 +8,18 @@ public class CannonController : MonoBehaviour
     [SerializeField] private Transform firePoint;
     [SerializeField] private float maxForce = 20f;
     [SerializeField] private GameObject turnIndicator;
+    [SerializeField] private float indicatorSpeed = 3f;
+    [SerializeField] private float indicatorAmplitude = 0.3f;
+
+    private Vector3 _indicatorInitialPos;
 
     private void Start()
     {
+        if (turnIndicator != null)
+        {
+            _indicatorInitialPos = turnIndicator.transform.localPosition;
+        }
+
         if (GameManager.Instance == null) return;
 
         UpdateTurnIndicator(GameManager.Instance.CurrentTurn);
@@ -22,6 +31,15 @@ public class CannonController : MonoBehaviour
         GameManager.Instance.OnAngleChanged += UpdateRotation;
         GameManager.Instance.OnFire += Fire;
         GameManager.Instance.OnTurnChanged += UpdateTurnIndicator;
+    }
+
+    private void Update()
+    {
+        if (turnIndicator != null && turnIndicator.activeSelf)
+        {
+            float yOffset = Mathf.Sin(Time.time * indicatorSpeed) * indicatorAmplitude;
+            turnIndicator.transform.localPosition = _indicatorInitialPos + Vector3.up * yOffset;
+        }
     }
 
     private void OnDestroy()
