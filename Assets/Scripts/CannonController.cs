@@ -10,6 +10,8 @@ public class CannonController : MonoBehaviour
     [SerializeField] private GameObject turnIndicator;
     [SerializeField] private float indicatorSpeed = 3f;
     [SerializeField] private float indicatorAmplitude = 0.3f;
+    [SerializeField] private GameObject crosshairIndicator;
+    [SerializeField] private float crosshairDistance = 2f;
 
     private Vector3 _indicatorInitialPos;
 
@@ -50,9 +52,16 @@ public class CannonController : MonoBehaviour
 
     private void UpdateTurnIndicator(GameManager.Turn turn)
     {
+        bool isMyTurn = turn == owner;
         if (turnIndicator != null)
         {
-            turnIndicator.SetActive(turn == owner);
+            turnIndicator.SetActive(isMyTurn);
+        }
+
+        if (crosshairIndicator != null)
+        {
+            crosshairIndicator.SetActive(isMyTurn);
+            if (isMyTurn) UpdateCrosshair();
         }
     }
 
@@ -80,6 +89,16 @@ public class CannonController : MonoBehaviour
         {
             barrelTransform.rotation = Quaternion.Euler(0, 0, angle);
         }
+
+        UpdateCrosshair();
+    }
+
+    private void UpdateCrosshair()
+    {
+        if (crosshairIndicator == null || firePoint == null) return;
+
+        crosshairIndicator.transform.position = firePoint.position + firePoint.right * crosshairDistance;
+        crosshairIndicator.transform.rotation = firePoint.rotation;
     }
 
     public void TakeDamage(float damage)
