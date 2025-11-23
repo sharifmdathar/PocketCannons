@@ -23,8 +23,14 @@ public class Projectile : MonoBehaviour
     transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
   }
 
-  private void OnCollisionEnter2D()
+  private void OnCollisionEnter2D(Collision2D collision)
   {
+    var cannon = collision.gameObject.GetComponentInParent<CannonController>();
+    if (cannon != null)
+    {
+      cannon.TakeDamage(20f);
+    }
+
     Destroy(gameObject);
   }
 }

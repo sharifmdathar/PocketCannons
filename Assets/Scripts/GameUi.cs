@@ -13,6 +13,8 @@ public class GameUi : MonoBehaviour
     [SerializeField] private TextMeshProUGUI powerTMP;
     [SerializeField] private Button fireButton;
     [SerializeField] private GameObject radialSliderPopup;
+    [SerializeField] private Slider p1HealthSlider;
+    [SerializeField] private Slider p2HealthSlider;
 
     private float _lastClickTime;
     private const float DoubleClickTime = 0.3f;
@@ -48,6 +50,10 @@ public class GameUi : MonoBehaviour
 
         GameManager.Instance.OnAngleChanged += UpdateAngleText;
         GameManager.Instance.OnPowerChanged += UpdatePowerUI;
+        GameManager.Instance.OnHealthChanged += UpdateHealthUI;
+
+        UpdateHealthUI(GameManager.Turn.Player1, GameManager.Instance.GetHealth(GameManager.Turn.Player1));
+        UpdateHealthUI(GameManager.Turn.Player2, GameManager.Instance.GetHealth(GameManager.Turn.Player2));
     }
 
     private static char ValidateAngleInput(string text, int charIndex, char addedChar)
@@ -72,6 +78,7 @@ public class GameUi : MonoBehaviour
         if (GameManager.Instance == null) return;
         GameManager.Instance.OnAngleChanged -= UpdateAngleText;
         GameManager.Instance.OnPowerChanged -= UpdatePowerUI;
+        GameManager.Instance.OnHealthChanged -= UpdateHealthUI;
     }
 
     private static void OnIncrementAngleClicked()
@@ -99,6 +106,21 @@ public class GameUi : MonoBehaviour
         if (powerTMP != null)
         {
             powerTMP.text = $"Power: {newPower:F0}%";
+        }
+    }
+
+    private void UpdateHealthUI(GameManager.Turn player, float health)
+    {
+        switch (player)
+        {
+            case GameManager.Turn.Player1 when p1HealthSlider != null:
+                p1HealthSlider.value = health;
+                break;
+            case GameManager.Turn.Player2 when p2HealthSlider != null:
+                p2HealthSlider.value = health;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(player), player, null);
         }
     }
 

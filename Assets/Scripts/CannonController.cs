@@ -83,4 +83,9 @@ public class CannonController : MonoBehaviour
             barrelTransform.rotation = Quaternion.Euler(0, 0, angle);
         }
     }
+
+    public void TakeDamage(float damage)
+    {
+        GameManager.Instance.TakeDamage(owner, damage);
+    }
 }
