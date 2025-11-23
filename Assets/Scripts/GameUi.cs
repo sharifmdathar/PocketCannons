@@ -16,11 +16,23 @@ public class GameUi : MonoBehaviour
     [SerializeField] private Image p1FillImage;
     [SerializeField] private Slider p2HealthSlider;
     [SerializeField] private Image p2FillImage;
+    [SerializeField] private RepeatButton moveLeftButton;
+    [SerializeField] private RepeatButton moveRightButton;
 
     private void Start()
     {
         incrementAngleButton.onClick.AddListener(OnIncrementAngleClicked);
         decrementAngleButton.onClick.AddListener(OnDecrementAngleClicked);
+
+        if (moveLeftButton != null)
+        {
+            moveLeftButton.onHold.AddListener(() => GameManager.Instance.Move(-1f));
+        }
+
+        if (moveRightButton != null)
+        {
+            moveRightButton.onHold.AddListener(() => GameManager.Instance.Move(1f));
+        }
 
         if (powerSlider != null)
         {
@@ -119,24 +131,20 @@ public class GameUi : MonoBehaviour
 
     public void OnAngleTextClicked()
     {
-        if (radialSliderPopup != null)
-        {
-            bool isSliderActive = !radialSliderPopup.activeSelf;
-            radialSliderPopup.SetActive(isSliderActive);
-            UpdateAngleText(GameManager.Instance.CurrentAngle);
+        if (radialSliderPopup == null) return;
+        var isSliderActive = !radialSliderPopup.activeSelf;
+        radialSliderPopup.SetActive(isSliderActive);
+        UpdateAngleText(GameManager.Instance.CurrentAngle);
 
-            if (isSliderActive)
+        if (!isSliderActive) return;
+        var sliderScript = radialSliderPopup.GetComponent<RadialSlider>();
+        if (sliderScript != null)
+        {
+            sliderScript.OnCloseRequested = () =>
             {
-                var sliderScript = radialSliderPopup.GetComponent<RadialSlider>();
-                if (sliderScript != null)
-                {
-                    sliderScript.OnCloseRequested = () =>
-                    {
-                        radialSliderPopup.SetActive(false);
-                        UpdateAngleText(GameManager.Instance.CurrentAngle);
-                    };
-                }
-            }
+                radialSliderPopup.SetActive(false);
+                UpdateAngleText(GameManager.Instance.CurrentAngle);
+            };
         }
     }
 }

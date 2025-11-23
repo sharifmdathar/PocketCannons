@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnAngleChanged;
     public event Action<float> OnPowerChanged;
     public event Action OnFire;
+    public event Action<float> OnMove;
     public event Action<Turn> OnTurnChanged;
     public event Action<Turn, float> OnHealthChanged;
 
@@ -32,7 +33,7 @@ public class GameManager : MonoBehaviour
         get => CurrentTurn == Turn.Player1 ? _p1Angle : _p2Angle;
         private set
         {
-            int clampedValue = (value % 360 + 360) % 360;
+            var clampedValue = (value % 360 + 360) % 360;
             if (CurrentTurn == Turn.Player1) _p1Angle = clampedValue;
             else _p2Angle = clampedValue;
 
@@ -45,7 +46,7 @@ public class GameManager : MonoBehaviour
         get => CurrentTurn == Turn.Player1 ? _p1Power : _p2Power;
         private set
         {
-            float clampedValue = Mathf.Clamp(value, 0f, 100f);
+            var clampedValue = Mathf.Clamp(value, 0f, 100f);
             if (CurrentTurn == Turn.Player1) _p1Power = clampedValue;
             else _p2Power = clampedValue;
 
@@ -83,6 +84,11 @@ public class GameManager : MonoBehaviour
     public void SetPower(float power)
     {
         CurrentPower = power;
+    }
+
+    public void Move(float direction)
+    {
+        OnMove?.Invoke(direction);
     }
 
     public void Fire()
