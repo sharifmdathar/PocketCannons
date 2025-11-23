@@ -1,75 +1,100 @@
 using System;
 using UnityEngine;
 
-namespace Assets.Scripts
+public class GameManager : MonoBehaviour
 {
-    public class GameManager : MonoBehaviour
+    public enum Turn
     {
-        public static GameManager Instance { get; private set; }
+        Player1,
+        Player2
+    }
 
-        public event Action<int> OnAngleChanged;
-        public event Action<float> OnPowerChanged;
-        public event Action OnFire;
+    public static GameManager Instance { get; private set; }
 
-        [SerializeField] private int _currentAngle = 60;
-        [SerializeField] private float _currentPower = 70f;
+    public event Action<int> OnAngleChanged;
+    public event Action<float> OnPowerChanged;
+    public event Action OnFire;
+    public event Action<Turn> OnTurnChanged;
 
-        public int CurrentAngle
+    [SerializeField] private int _p1Angle = 60;
+    [SerializeField] private float _p1Power = 70f;
+
+    [SerializeField] private int _p2Angle = 120;
+    [SerializeField] private float _p2Power = 70f;
+
+    public Turn CurrentTurn { get; private set; } = Turn.Player1;
+
+    public int CurrentAngle
+    {
+        get => CurrentTurn == Turn.Player1 ? _p1Angle : _p2Angle;
+        private set
         {
-            get => _currentAngle;
-            private set
-            {
-                _currentAngle = (value % 360 + 360) % 360;
+            int clampedValue = (value % 360 + 360) % 360;
+            if (CurrentTurn == Turn.Player1) _p1Angle = clampedValue;
+            else _p2Angle = clampedValue;
 
-                OnAngleChanged?.Invoke(_currentAngle);
-            }
+            OnAngleChanged?.Invoke(clampedValue);
         }
+    }
 
-        public float CurrentPower
+    public float CurrentPower
+    {
+        get => CurrentTurn == Turn.Player1 ? _p1Power : _p2Power;
+        private set
         {
-            get => _currentPower;
-            private set
-            {
-                _currentPower = Mathf.Clamp(value, 0f, 100f);
-                OnPowerChanged?.Invoke(_currentPower);
-            }
-        }
+            float clampedValue = Mathf.Clamp(value, 0f, 100f);
+            if (CurrentTurn == Turn.Player1) _p1Power = clampedValue;
+            else _p2Power = clampedValue;
 
-        private void Awake()
-        {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            OnPowerChanged?.Invoke(clampedValue);
         }
+    }
 
-        public void IncrementAngle()
+    private void Awake()
+    {
+        if (Instance == null)
         {
-            CurrentAngle++;
+            Instance = this;
         }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
-        public void DecrementAngle()
-        {
-            CurrentAngle--;
-        }
+    public void IncrementAngle()
+    {
+        CurrentAngle++;
+    }
 
-        public void SetAngle(int angle)
-        {
-            CurrentAngle = angle;
-        }
+    public void DecrementAngle()
+    {
+        CurrentAngle--;
+    }
 
-        public void SetPower(float power)
-        {
-            CurrentPower = power;
-        }
+    public void SetAngle(int angle)
+    {
+        CurrentAngle = angle;
+    }
 
-        public void Fire()
-        {
-            OnFire?.Invoke();
-        }
+    public void SetPower(float power)
+    {
+        CurrentPower = power;
+    }
+
+    public void Fire()
+    {
+        OnFire?.Invoke();
+        SwitchTurn();
+    }
+
+    private void SwitchTurn()
+    {
+        CurrentTurn = CurrentTurn == Turn.Player1 ? Turn.Player2 : Turn.Player1;
+        OnTurnChanged?.Invoke(CurrentTurn);
+
+        // Refresh UI with new player's stats
+        OnAngleChanged?.Invoke(CurrentAngle);
+        OnPowerChanged?.Invoke(CurrentPower);
     }
 }

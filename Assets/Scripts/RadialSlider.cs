@@ -1,84 +1,73 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Assets.Scripts
+[RequireComponent(typeof(RectTransform))]
+public class RadialSlider : MonoBehaviour, IDragHandler, IPointerDownHandler
 {
-  public class RadialSlider : MonoBehaviour, IDragHandler, IPointerDownHandler
+  [SerializeField] private RectTransform handle;
+  [SerializeField] private float radius = 100f;
+  [SerializeField] private float centerDeadZoneRadius = 40f;
+
+  public System.Action OnCloseRequested;
+
+  private RectTransform _rectTransform;
+
+  private void Awake()
   {
-    [SerializeField] private RectTransform handle;
-    [SerializeField] private float radius = 100f; // Distance of handle from center
-    [SerializeField] private float centerDeadZoneRadius = 40f; // Clicks inside this radius will close the slider
+    _rectTransform = GetComponent<RectTransform>();
+  }
 
-    public System.Action OnCloseRequested;
+  private void OnEnable()
+  {
+    if (GameManager.Instance == null) return;
+    UpdateHandlePosition(GameManager.Instance.CurrentAngle);
+    GameManager.Instance.OnAngleChanged += UpdateHandlePosition;
+  }
 
-    private RectTransform _rectTransform;
-
-    private void Awake()
+  private void OnDisable()
+  {
+    if (GameManager.Instance != null)
     {
-      _rectTransform = GetComponent<RectTransform>();
+      GameManager.Instance.OnAngleChanged -= UpdateHandlePosition;
+    }
+  }
+
+  public void OnPointerDown(PointerEventData eventData)
+  {
+    UpdateAngleFromInput(eventData);
+  }
+
+  public void OnDrag(PointerEventData eventData)
+  {
+    UpdateAngleFromInput(eventData);
+  }
+
+  private void UpdateAngleFromInput(PointerEventData eventData)
+  {
+    Vector2 localPoint;
+    if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectTransform, eventData.position,
+          eventData.pressEventCamera, out localPoint)) return;
+    if (localPoint.magnitude < centerDeadZoneRadius)
+    {
+      OnCloseRequested?.Invoke();
+      return;
     }
 
-    private void OnEnable()
-    {
-      // Initialize handle position based on current angle
-      if (GameManager.Instance != null)
-      {
-        UpdateHandlePosition(GameManager.Instance.CurrentAngle);
-        GameManager.Instance.OnAngleChanged += UpdateHandlePosition;
-      }
-    }
+    var angle = Mathf.Atan2(localPoint.y, localPoint.x) * Mathf.Rad2Deg;
+    if (angle < 0) angle += 360;
 
-    private void OnDisable()
-    {
-      if (GameManager.Instance != null)
-      {
-        GameManager.Instance.OnAngleChanged -= UpdateHandlePosition;
-      }
-    }
+    GameManager.Instance.SetAngle((int)angle);
+  }
 
-    public void OnPointerDown(PointerEventData eventData)
-    {
-      UpdateAngleFromInput(eventData);
-    }
+  private void UpdateHandlePosition(int angle)
+  {
+    if (handle == null) return;
 
-    public void OnDrag(PointerEventData eventData)
-    {
-      UpdateAngleFromInput(eventData);
-    }
+    var radians = angle * Mathf.Deg2Rad;
 
-    private void UpdateAngleFromInput(PointerEventData eventData)
-    {
-      Vector2 localPoint;
-      if (RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectTransform, eventData.position,
-            eventData.pressEventCamera, out localPoint))
-      {
-        // Check if click is in the center dead zone
-        if (localPoint.magnitude < centerDeadZoneRadius)
-        {
-          OnCloseRequested?.Invoke();
-          return;
-        }
+    var position = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)) * radius;
+    handle.anchoredPosition = position;
 
-        float angle = Mathf.Atan2(localPoint.y, localPoint.x) * Mathf.Rad2Deg;
-        if (angle < 0) angle += 360;
-
-        GameManager.Instance.SetAngle((int)angle);
-      }
-    }
-
-    private void UpdateHandlePosition(int angle)
-    {
-      if (handle == null) return;
-
-      // Convert angle to radians
-      float radians = angle * Mathf.Deg2Rad;
-
-      // Calculate position on the circle
-      Vector2 position = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)) * radius;
-      handle.anchoredPosition = position;
-
-      // Rotate handle to face outward
-      handle.localRotation = Quaternion.Euler(0, 0, angle);
-    }
+    handle.localRotation = Quaternion.Euler(0, 0, angle);
   }
 }

@@ -1,8 +1,8 @@
 using UnityEngine;
-using Assets.Scripts;
 
 public class CannonController : MonoBehaviour
 {
+    [SerializeField] private GameManager.Turn owner;
     [SerializeField] private Transform barrelTransform;
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform firePoint;
@@ -11,7 +11,12 @@ public class CannonController : MonoBehaviour
     private void Start()
     {
         if (GameManager.Instance == null) return;
-        UpdateRotation(GameManager.Instance.CurrentAngle);
+
+        if (GameManager.Instance.CurrentTurn == owner)
+        {
+            UpdateRotation(GameManager.Instance.CurrentAngle);
+        }
+
         GameManager.Instance.OnAngleChanged += UpdateRotation;
         GameManager.Instance.OnFire += Fire;
     }
@@ -27,6 +32,7 @@ public class CannonController : MonoBehaviour
 
     private void Fire()
     {
+        if (GameManager.Instance.CurrentTurn != owner) return;
         if (projectilePrefab == null || firePoint == null) return;
 
         GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
@@ -42,6 +48,8 @@ public class CannonController : MonoBehaviour
 
     private void UpdateRotation(int angle)
     {
+        if (GameManager.Instance.CurrentTurn != owner) return;
+
         if (barrelTransform != null)
         {
             barrelTransform.rotation = Quaternion.Euler(0, 0, angle);
