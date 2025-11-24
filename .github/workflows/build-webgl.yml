@@ -1,8 +1,8 @@
 name: Build WebGL and Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -11,6 +11,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Maximize space
+        run: |
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          docker system prune -af
+          df -h
 
       - name: Cache
         uses: actions/cache@v3
@@ -29,7 +38,7 @@ jobs:
         with:
           targetPlatform: WebGL
           allowDirtyBuild: true
-          customImage: 'unityci/editor:ubuntu-6000.0.62f1-webgl-3.2.0'
+          customImage: 'unityci/editor:ubuntu-6000.2.10f1-webgl-3.2.0'
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
