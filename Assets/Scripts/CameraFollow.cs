@@ -79,10 +79,34 @@ public class CameraFollow : MonoBehaviour
         var requiredWidth = distance + sizePadding * 2f;
         var requiredHeight = requiredWidth / aspectRatio;
 
-        _targetOrthographicSize = Mathf.Clamp(Mathf.Max(requiredHeight / 2f, minOrthographicSize), minOrthographicSize,
-            maxOrthographicSize);
+        var calculatedSize = Mathf.Max(requiredHeight / 2f, minOrthographicSize);
 
-        _targetPosition = new Vector3(midpoint.x, midpoint.y + cameraYOffset, cameraZOffset);
+        if (TerrainGenerator.Instance != null)
+        {
+            var minX = TerrainGenerator.Instance.GetMinX();
+            var maxX = TerrainGenerator.Instance.GetMaxX();
+            var terrainWidth = maxX - minX;
+
+            var maxSizeForTerrain = terrainWidth / (aspectRatio * 2f);
+
+            calculatedSize = Mathf.Min(calculatedSize, maxSizeForTerrain);
+        }
+
+        _targetOrthographicSize = Mathf.Clamp(calculatedSize, minOrthographicSize, maxOrthographicSize);
+
+        var targetX = midpoint.x;
+        var targetY = midpoint.y + cameraYOffset;
+
+        if (TerrainGenerator.Instance != null)
+        {
+            var minX = TerrainGenerator.Instance.GetMinX();
+            var maxX = TerrainGenerator.Instance.GetMaxX();
+
+            var cameraHalfWidth = _targetOrthographicSize * aspectRatio;
+            targetX = Mathf.Clamp(targetX, minX + cameraHalfWidth, maxX - cameraHalfWidth);
+        }
+
+        _targetPosition = new Vector3(targetX, targetY, cameraZOffset);
     }
 
     private void FindCannons()

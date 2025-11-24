@@ -81,4 +81,20 @@ public class TerrainGenerator : MonoBehaviour
     {
         return Mathf.PerlinNoise((x + _seed) * noiseFrequency, 0) * heightMultiplier;
     }
+
+    public float GetMinX()
+    {
+        return -width / 2f;
+    }
+
+    public float GetMaxX()
+    {
+        var step = 1f / resolution;
+        return -width / 2f + width - step;
+    }
+
+    public bool IsWithinBounds(float x)
+    {
+        return x >= GetMinX() && x <= GetMaxX();
+    }
 }

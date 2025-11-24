@@ -15,6 +15,7 @@ public class CannonController : MonoBehaviour
     [SerializeField] private float crosshairDistance = 2f;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float groundOffset = 0.5f;
+    [SerializeField] private float movementMargin = 2f; // Margin from terrain edges to prevent camera over-zooming
 
     private Vector3 _indicatorInitialPos;
 
@@ -69,6 +70,11 @@ public class CannonController : MonoBehaviour
 
         if (TerrainGenerator.Instance != null)
         {
+            // Clamp X position to terrain bounds with margin to prevent camera over-zooming
+            var minX = TerrainGenerator.Instance.GetMinX() + movementMargin;
+            var maxX = TerrainGenerator.Instance.GetMaxX() - movementMargin;
+            targetPos.x = Mathf.Clamp(targetPos.x, minX, maxX);
+
             var terrainHeight = TerrainGenerator.Instance.GetHeight(targetPos.x);
             targetPos.y = terrainHeight + groundOffset;
 

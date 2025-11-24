@@ -111,5 +111,12 @@ libdecor-0.so.0
 libdecor-cairo.so
 Pocket Cannons_BurstDebugInformation_DoNotShip/
 
+# WebGL Build Artifacts
+PocketCannonsWeb/
+
 # Crash dumps
 mono_crash.*
+
+# Ignore temporaries from GameCI
+/[Aa]rtifacts/
+/[Cc]odeCoverage/

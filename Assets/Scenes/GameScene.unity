@@ -1170,7 +1170,7 @@ MonoBehaviour:
   cannon1: {fileID: 1907917690}
   cannon2: {fileID: 454818064}
   minOrthographicSize: 10
-  maxOrthographicSize: 20
+  maxOrthographicSize: 30
   sizePadding: 2
   positionSmoothing: 5
   sizeSmoothing: 5
