@@ -3,6 +3,7 @@ using UnityEngine;
 public class CannonController : MonoBehaviour
 {
     [SerializeField] private GameManager.Turn owner;
+    public GameManager.Turn Owner => owner;
     [SerializeField] private Transform barrelTransform;
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform firePoint;

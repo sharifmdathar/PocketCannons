@@ -599,7 +599,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fc48e43a8328a36d9bab1cb1d650b3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TerrainGenerator
-  width: 50
+  width: 100
   heightMultiplier: 5
   noiseFrequency: 0.15
   groundDepth: 15
@@ -1006,6 +1006,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6492449546760634901, guid: b02a68ef81e78f8b094af07b0b27099c, type: 3}
   m_PrefabInstance: {fileID: 1233154142}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &454818064 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3937997600706878436, guid: b02a68ef81e78f8b094af07b0b27099c, type: 3}
+  m_PrefabInstance: {fileID: 1233154142}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83f15087f519ea38ea482d1c0dd143e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CannonController
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1018,6 +1029,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1143,6 +1155,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffb19e4ab469e60d8915216b27e36668, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
+  cannon1: {fileID: 1907917690}
+  cannon2: {fileID: 454818064}
+  minOrthographicSize: 10
+  maxOrthographicSize: 20
+  sizePadding: 2
+  positionSmoothing: 5
+  sizeSmoothing: 5
+  cameraZOffset: -10
+  cameraYOffset: 0
 --- !u!1 &524047900
 GameObject:
   m_ObjectHideFlags: 0
@@ -1458,7 +1491,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8668747604598054608, guid: b02a68ef81e78f8b094af07b0b27099c, type: 3}
       propertyPath: m_Name
-      value: Cannon
+      value: Cannon1
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4675253268665596483, guid: b02a68ef81e78f8b094af07b0b27099c, type: 3}
@@ -3587,6 +3620,17 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1907917690 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3937997600706878436, guid: b02a68ef81e78f8b094af07b0b27099c, type: 3}
+  m_PrefabInstance: {fileID: 576789003}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83f15087f519ea38ea482d1c0dd143e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CannonController
 --- !u!1 &1985926377
 GameObject:
   m_ObjectHideFlags: 0
