@@ -426,6 +426,8 @@ MonoBehaviour:
   indicatorAmplitude: 0.3
   crosshairIndicator: {fileID: 587149006050477957}
   crosshairDistance: 2
+  moveSpeed: 5
+  groundOffset: 0.5
 --- !u!61 &4694307870376538925
 BoxCollider2D:
   m_ObjectHideFlags: 0

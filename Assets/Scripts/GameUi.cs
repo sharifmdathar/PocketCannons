@@ -22,6 +22,7 @@ public class GameUi : MonoBehaviour
     [SerializeField] private GameObject gameOverPopup;
     [SerializeField] private TextMeshProUGUI winnerText;
     [SerializeField] private Button restartButton;
+    [SerializeField] private Button regenerateMapButton;
 
     private void Start()
     {
@@ -41,6 +42,11 @@ public class GameUi : MonoBehaviour
         if (restartButton != null)
         {
             restartButton.onClick.AddListener(OnRestartClicked);
+        }
+
+        if (regenerateMapButton != null)
+        {
+            regenerateMapButton.onClick.AddListener(OnRegenerateMapClicked);
         }
 
         if (powerSlider != null)
@@ -171,6 +177,19 @@ public class GameUi : MonoBehaviour
                 radialSliderPopup.SetActive(false);
                 UpdateAngleText(GameManager.Instance.CurrentAngle);
             };
+        }
+    }
+
+    private void OnRegenerateMapClicked()
+    {
+        if (TerrainGenerator.Instance == null) return;
+
+        TerrainGenerator.Instance.GenerateTerrain();
+
+        var cannons = FindObjectsByType<CannonController>(FindObjectsSortMode.None);
+        foreach (var c in cannons)
+        {
+            c.SnapToGround();
         }
     }
 }

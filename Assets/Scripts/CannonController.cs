@@ -13,6 +13,7 @@ public class CannonController : MonoBehaviour
     [SerializeField] private GameObject crosshairIndicator;
     [SerializeField] private float crosshairDistance = 2f;
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float groundOffset = 0.5f;
 
     private Vector3 _indicatorInitialPos;
 
@@ -21,6 +22,11 @@ public class CannonController : MonoBehaviour
         if (turnIndicator != null)
         {
             _indicatorInitialPos = turnIndicator.transform.localPosition;
+        }
+
+        if (TerrainGenerator.Instance != null)
+        {
+            SnapToGround();
         }
 
         if (GameManager.Instance == null) return;
@@ -57,7 +63,26 @@ public class CannonController : MonoBehaviour
     {
         if (GameManager.Instance.CurrentTurn != owner) return;
 
-        transform.Translate(Vector3.right * (direction * moveSpeed * Time.deltaTime));
+        var moveAmount = direction * moveSpeed * Time.deltaTime;
+        var targetPos = transform.position + Vector3.right * moveAmount;
+
+        if (TerrainGenerator.Instance != null)
+        {
+            var terrainHeight = TerrainGenerator.Instance.GetHeight(targetPos.x);
+            targetPos.y = terrainHeight + groundOffset;
+
+            var nextHeight = TerrainGenerator.Instance.GetHeight(targetPos.x + 0.1f);
+            var angle = Mathf.Atan2(nextHeight - terrainHeight, 0.1f) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+        }
+
+        transform.position = targetPos;
+    }
+
+    public void SnapToGround()
+    {
+        var y = TerrainGenerator.Instance.GetHeight(transform.position.x);
+        transform.position = new Vector3(transform.position.x, y + groundOffset, transform.position.z);
     }
 
     private void UpdateTurnIndicator(GameManager.Turn turn)
