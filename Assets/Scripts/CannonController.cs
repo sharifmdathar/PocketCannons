@@ -81,8 +81,17 @@ public class CannonController : MonoBehaviour
 
     public void SnapToGround()
     {
-        var y = TerrainGenerator.Instance.GetHeight(transform.position.x);
-        transform.position = new Vector3(transform.position.x, y + groundOffset, transform.position.z);
+        if (TerrainGenerator.Instance == null) return;
+
+        var x = transform.position.x;
+        var y = TerrainGenerator.Instance.GetHeight(x);
+        transform.position = new Vector3(x, y + groundOffset, transform.position.z);
+
+
+        const float sampleDelta = 0.1f;
+        var nextHeight = TerrainGenerator.Instance.GetHeight(x + sampleDelta);
+        var slopeAngle = Mathf.Atan2(nextHeight - y, sampleDelta) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0f, 0f, slopeAngle);
     }
 
     private void UpdateTurnIndicator(GameManager.Turn turn)
