@@ -10,15 +10,13 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        targetPlatform: [StandaloneWindows64, StandaloneLinux64]
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
 
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -28,9 +26,8 @@ jobs:
           dotnet: true
           haskell: true
           large-packages: true
-          docker-images: true
+          docker-images: false
           swap-storage: true
-
 
       - name: Cache Unity Library
         uses: actions/cache@v4
@@ -40,32 +37,121 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      - name: Build ${{ matrix.targetPlatform }}
+      - name: Cache Docker image
+        uses: actions/cache@v4
+        id: docker-cache
+        with:
+          path: /tmp/docker-image-cache
+          key: docker-linux-unity-${{ hashFiles('**/release.yml') }}
+          restore-keys: |
+            docker-linux-unity-
+
+      - name: Load Docker image from cache
+        if: steps.docker-cache.outputs.cache-hit == 'true'
+        run: |
+          docker load -i /tmp/docker-image-cache/unity-linux.tar || true
+
+      - name: Pull Docker image (if not cached)
+        if: steps.docker-cache.outputs.cache-hit != 'true'
+        run: |
+          docker pull unityci/editor:ubuntu-6000.2.10f1-linux-il2cpp-3.2.0
+
+      - name: Save Docker image to cache
+        if: steps.docker-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/docker-image-cache
+          docker save unityci/editor:ubuntu-6000.2.10f1-linux-il2cpp-3.2.0 -o /tmp/docker-image-cache/unity-linux.tar
+
+      - name: Build Linux
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: ${{ matrix.targetPlatform }}
-          customImage: unityci/editor:ubuntu-6000.2.10f1-${{ matrix.targetPlatform == 'StandaloneWindows64' && 'standalonewindows64' || 'standalonelinux64' }}-3.2.0
-          buildName: ${{ matrix.targetPlatform }}
+          targetPlatform: StandaloneLinux64
+          customImage: unityci/editor:ubuntu-6000.2.10f1-linux-il2cpp-3.2.0
+          buildName: StandaloneLinux64
           buildsPath: build
           allowDirtyBuild: true
 
-      - name: Zip Build
+      - name: List build directory structure
         run: |
-          cd build/${{ matrix.targetPlatform }}
-          zip -r ../${{ matrix.targetPlatform }}.zip .
+          echo "Contents of build directory:"
+          ls -la build/ 2>/dev/null || echo "Build directory does not exist"
+          echo ""
+          echo "Subdirectories in build:"
+          find build -maxdepth 2 -type d 2>/dev/null | head -20 || echo "Could not list directories"
 
-      - name: Upload Build Artifact
+      - name: Zip Linux Build
+        run: |
+          cd build
+          chmod -R u+w . || true
+          rm -f StandaloneLinux64.zip
+          # Check if directory exists (case-insensitive check)
+          BUILD_DIR=$(find . -maxdepth 1 -type d -iname "*standalone*linux*" | head -1)
+          if [ -z "$BUILD_DIR" ]; then
+            BUILD_DIR="StandaloneLinux64"
+          fi
+          echo "Using build directory: $BUILD_DIR"
+          if [ -d "$BUILD_DIR" ]; then
+            zip -r StandaloneLinux64.zip "$BUILD_DIR"/
+          else
+            echo "Error: Build directory not found!"
+            echo "Expected: StandaloneLinux64"
+            echo "Found directories:"
+            ls -la
+            exit 1
+          fi
+
+      - name: Upload Linux Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}.zip
+          name: StandaloneLinux64
+          path: build/StandaloneLinux64.zip
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-${{ hashFiles('ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-${{ runner.os }}-
+
+      - name: Build Windows
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: StandaloneWindows64
+          customImage: unityci/editor:windows-6000.2.10f1-windows-il2cpp-3.2.0
+          buildName: StandaloneWindows64
+          buildsPath: build
+          allowDirtyBuild: true
+
+      - name: Zip Windows Build
+        shell: powershell
+        run: |
+          Compress-Archive -Path build\StandaloneWindows64\* -DestinationPath build\StandaloneWindows64.zip -Force
+
+      - name: Upload Windows Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StandaloneWindows64
+          path: build/StandaloneWindows64.zip
 
   release:
-    needs: build
+    needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3

@@ -1,8 +1,8 @@
 name: Build WebGL and Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
           dotnet: true
           haskell: true
           large-packages: true
-          docker-images: true
+          docker-images: false
           swap-storage: true
 
       - name: Cache Unity Library
@@ -45,6 +45,31 @@ jobs:
           key: WebGLBuild-${{ runner.os }}-${{ hashFiles('Assets/**', 'ProjectSettings/**') }}
           restore-keys: |
             WebGLBuild-${{ runner.os }}-
+
+      - name: Cache Docker image
+        uses: actions/cache@v4
+        id: docker-cache
+        with:
+          path: /tmp/docker-image-cache
+          key: docker-webgl-unity-${{ hashFiles('**/build-webgl.yml') }}
+          restore-keys: |
+            docker-webgl-unity-
+
+      - name: Load Docker image from cache
+        if: steps.docker-cache.outputs.cache-hit == 'true'
+        run: |
+          docker load -i /tmp/docker-image-cache/unity-webgl.tar || true
+
+      - name: Pull Docker image (if not cached)
+        if: steps.docker-cache.outputs.cache-hit != 'true'
+        run: |
+          docker pull unityci/editor:ubuntu-6000.2.10f1-webgl-3.2.0
+
+      - name: Save Docker image to cache
+        if: steps.docker-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/docker-image-cache
+          docker save unityci/editor:ubuntu-6000.2.10f1-webgl-3.2.0 -o /tmp/docker-image-cache/unity-webgl.tar
 
       - name: Build WebGL
         uses: game-ci/unity-builder@v4
