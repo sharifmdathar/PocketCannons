@@ -83,29 +83,34 @@ jobs:
           echo "Subdirectories in build:"
           find build -maxdepth 2 -type d 2>/dev/null | head -20 || echo "Could not list directories"
 
+      - name: Fix build directory ownership
+        run: |
+          # Change ownership of build directory to runner user so we can write zip file
+          CURRENT_USER=$(whoami)
+          sudo chown -R $CURRENT_USER:$CURRENT_USER build/ || true
+
       - name: Zip Linux Build
         run: |
-          cd build
-          chmod -R u+w . || true
-          rm -f StandaloneLinux64.zip
           # Check if directory exists (case-insensitive check)
-          BUILD_DIR=$(find . -maxdepth 1 -type d -iname "*standalone*linux*" | head -1)
+          BUILD_DIR=$(find build -maxdepth 1 -type d -iname "*standalone*linux*" | head -1)
           if [ -z "$BUILD_DIR" ]; then
-            BUILD_DIR="StandaloneLinux64"
+            BUILD_DIR="build/StandaloneLinux64"
           fi
           echo "Using build directory: $BUILD_DIR"
           if [ -d "$BUILD_DIR" ]; then
-            zip -r StandaloneLinux64.zip "$BUILD_DIR"/
+            cd build
+            rm -f StandaloneLinux64.zip
+            zip -r StandaloneLinux64.zip "$(basename "$BUILD_DIR")"/
           else
             echo "Error: Build directory not found!"
-            echo "Expected: StandaloneLinux64"
+            echo "Expected: build/StandaloneLinux64"
             echo "Found directories:"
-            ls -la
+            ls -la build/
             exit 1
           fi
 
       - name: Upload Linux Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: StandaloneLinux64
           path: build/StandaloneLinux64.zip
@@ -145,7 +150,7 @@ jobs:
           Compress-Archive -Path build\StandaloneWindows64\* -DestinationPath build\StandaloneWindows64.zip -Force
 
       - name: Upload Windows Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: StandaloneWindows64
           path: build/StandaloneWindows64.zip
@@ -154,7 +159,7 @@ jobs:
     needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v6
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
