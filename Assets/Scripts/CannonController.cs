@@ -43,6 +43,7 @@ public class CannonController : MonoBehaviour
         GameManager.Instance.OnFire += Fire;
         GameManager.Instance.OnMove += Move;
         GameManager.Instance.OnTurnChanged += UpdateTurnIndicator;
+        GameManager.Instance.OnHealthChanged += HandleHealthChanged;
     }
 
     private void Update()
@@ -59,6 +60,7 @@ public class CannonController : MonoBehaviour
         GameManager.Instance.OnFire -= Fire;
         GameManager.Instance.OnMove -= Move;
         GameManager.Instance.OnTurnChanged -= UpdateTurnIndicator;
+        GameManager.Instance.OnHealthChanged -= HandleHealthChanged;
     }
 
     private void Move(float direction)
@@ -70,7 +72,6 @@ public class CannonController : MonoBehaviour
 
         if (TerrainGenerator.Instance != null)
         {
-            // Clamp X position to terrain bounds with margin to prevent camera over-zooming
             var minX = TerrainGenerator.Instance.GetMinX() + movementMargin;
             var maxX = TerrainGenerator.Instance.GetMaxX() - movementMargin;
             targetPos.x = Mathf.Clamp(targetPos.x, minX, maxX);
@@ -151,5 +152,63 @@ public class CannonController : MonoBehaviour
     public void TakeDamage(float damage)
     {
         GameManager.Instance.TakeDamage(owner, damage);
+    }
+
+    private void HandleHealthChanged(GameManager.Turn turn, float health)
+    {
+        if (turn == owner && health <= 0)
+        {
+            Explode();
+        }
+    }
+
+    private void Explode()
+    {
+        GameObject explosion = new GameObject("Explosion");
+        explosion.transform.position = transform.position;
+
+        ParticleSystem ps = explosion.AddComponent<ParticleSystem>();
+        var renderer = explosion.GetComponent<ParticleSystemRenderer>();
+        renderer.material = new Material(Shader.Find("Sprites/Default"));
+
+        var main = ps.main;
+        main.startLifetime = 0.6f;
+        main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 7f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.2f, 0.8f);
+        main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.5f, 0f), Color.yellow);
+        main.loop = false;
+        main.playOnAwake = true;
+        
+        var emission = ps.emission;
+        emission.enabled = true;
+        emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 30) });
+        
+        var shape = ps.shape;
+        shape.shapeType = ParticleSystemShapeType.Circle;
+        
+        var colLifetime = ps.colorOverLifetime;
+        colLifetime.enabled = true;
+        Gradient grad = new Gradient();
+        grad.SetKeys(
+            new GradientColorKey[] { new GradientColorKey(Color.white, 0.0f), new GradientColorKey(Color.red, 0.6f), new GradientColorKey(Color.gray, 1.0f) },
+            new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(1.0f, 0.6f), new GradientAlphaKey(0.0f, 1.0f) }
+        );
+        colLifetime.color = grad;
+        
+        Destroy(explosion, 1.5f);
+
+        var renderers = GetComponentsInChildren<SpriteRenderer>();
+        foreach (var r in renderers)
+        {
+            r.enabled = false;
+        }
+
+        var col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
+
+        if (turnIndicator != null) turnIndicator.SetActive(false);
+        if (crosshairIndicator != null) crosshairIndicator.SetActive(false);
+        
+        enabled = false;
     }
 }

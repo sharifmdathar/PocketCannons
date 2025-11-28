@@ -16,6 +16,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          lfs: true
 
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@v1.3.1
