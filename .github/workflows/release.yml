@@ -21,10 +21,10 @@ jobs:
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
+          tool-cache: false
+          android: false
+          dotnet: false
+          haskell: false
           large-packages: true
           docker-images: false
           swap-storage: true
@@ -75,14 +75,6 @@ jobs:
           buildsPath: build
           allowDirtyBuild: true
 
-      - name: List build directory structure
-        run: |
-          echo "Contents of build directory:"
-          ls -la build/ 2>/dev/null || echo "Build directory does not exist"
-          echo ""
-          echo "Subdirectories in build:"
-          find build -maxdepth 2 -type d 2>/dev/null | head -20 || echo "Could not list directories"
-
       - name: Fix build directory ownership
         run: |
           # Change ownership of build directory to runner user so we can write zip file
@@ -91,23 +83,9 @@ jobs:
 
       - name: Zip Linux Build
         run: |
-          # Check if directory exists (case-insensitive check)
-          BUILD_DIR=$(find build -maxdepth 1 -type d -iname "*standalone*linux*" | head -1)
-          if [ -z "$BUILD_DIR" ]; then
-            BUILD_DIR="build/StandaloneLinux64"
-          fi
-          echo "Using build directory: $BUILD_DIR"
-          if [ -d "$BUILD_DIR" ]; then
-            cd build
-            rm -f StandaloneLinux64.zip
-            zip -r StandaloneLinux64.zip "$(basename "$BUILD_DIR")"/
-          else
-            echo "Error: Build directory not found!"
-            echo "Expected: build/StandaloneLinux64"
-            echo "Found directories:"
-            ls -la build/
-            exit 1
-          fi
+          cd build
+          rm -f StandaloneLinux64.zip
+          zip -r StandaloneLinux64.zip StandaloneLinux64/
 
       - name: Upload Linux Build Artifact
         uses: actions/upload-artifact@v5
@@ -158,6 +136,7 @@ jobs:
   release:
     needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/download-artifact@v6
 
@@ -168,5 +147,6 @@ jobs:
             StandaloneWindows64/StandaloneWindows64.zip
             StandaloneLinux64/StandaloneLinux64.zip
           generate_release_notes: true
+          tag_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

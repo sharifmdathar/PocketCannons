@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class CannonController : MonoBehaviour
@@ -15,9 +16,12 @@ public class CannonController : MonoBehaviour
     [SerializeField] private float crosshairDistance = 2f;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float groundOffset = 0.5f;
-    [SerializeField] private float movementMargin = 2f; // Margin from terrain edges to prevent camera over-zooming
+    [SerializeField] private float movementMargin = 2f;
+    [SerializeField] private float tripleShotSpreadAngle = 15f;
+    [SerializeField] private float tripleShotPositionOffset = 0.1f;
 
     private Vector3 _indicatorInitialPos;
+    private bool _isFiring = false;
 
     private void Start()
     {
@@ -95,7 +99,6 @@ public class CannonController : MonoBehaviour
         var y = TerrainGenerator.Instance.GetHeight(x);
         transform.position = new Vector3(x, y + groundOffset, transform.position.z);
 
-
         const float sampleDelta = 0.1f;
         var nextHeight = TerrainGenerator.Instance.GetHeight(x + sampleDelta);
         var slopeAngle = Mathf.Atan2(nextHeight - y, sampleDelta) * Mathf.Rad2Deg;
@@ -119,13 +122,61 @@ public class CannonController : MonoBehaviour
     {
         if (GameManager.Instance.CurrentTurn != owner) return;
         if (projectilePrefab == null || firePoint == null) return;
+        if (_isFiring) return;
 
-        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
+        switch (GameManager.Instance.CurrentAttackType)
+        {
+            case GameManager.AttackType.SingleShot:
+                FireSingleProjectile();
+                break;
+            case GameManager.AttackType.TripleShot:
+                FireTripleShot();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private void FireSingleProjectile()
+    {
+        CreateAndLaunchProjectile(firePoint.position, firePoint.rotation);
+    }
+
+    private void FireTripleShot()
+    {
+        _isFiring = true;
+
+        firePoint.GetPositionAndRotation(out var startPosition, out var baseRotation);
+        var forceMagnitude = maxForce * (GameManager.Instance.CurrentPower / 100f);
+        var spreadAngles = new[] { -tripleShotSpreadAngle, 0f, tripleShotSpreadAngle };
+
+        for (var i = 0; i < 3; i++)
+        {
+            var shotRotation = baseRotation * Quaternion.Euler(0, 0, spreadAngles[i]);
+            var shotDirection = shotRotation * Vector2.right;
+            var perpendicular = new Vector2(-shotDirection.y, shotDirection.x);
+            var shotPosition = startPosition + (Vector3)((i - 1) * tripleShotPositionOffset * perpendicular);
+
+            CreateAndLaunchProjectile(shotPosition, shotRotation, shotDirection, forceMagnitude);
+        }
+
+        _isFiring = false;
+    }
+
+    private void CreateAndLaunchProjectile(Vector3 position, Quaternion rotation)
+    {
+        var powerPercentage = GameManager.Instance.CurrentPower / 100f;
+        Vector2 force = firePoint.right * (maxForce * powerPercentage);
+        CreateAndLaunchProjectile(position, rotation, firePoint.right, force.magnitude);
+    }
+
+    private void CreateAndLaunchProjectile(Vector3 position, Quaternion rotation, Vector2 direction, float forceMagnitude)
+    {
+        var projectile = Instantiate(projectilePrefab, position, rotation);
         Rigidbody2D rb = projectile.GetComponent<Rigidbody2D>();
 
         if (rb == null) return;
-        var powerPercentage = GameManager.Instance.CurrentPower / 100f;
-        Vector2 force = firePoint.right * (maxForce * powerPercentage);
+        var force = direction * forceMagnitude;
         rb.AddForce(force, ForceMode2D.Impulse);
     }
 

@@ -9,6 +9,12 @@ public class GameManager : MonoBehaviour
         Player2
     }
 
+    public enum AttackType
+    {
+        SingleShot,
+        TripleShot
+    }
+
     public static GameManager Instance { get; private set; }
 
     public event Action<int> OnAngleChanged;
@@ -26,6 +32,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int _p2Angle = 120;
     [SerializeField] private float _p2Power = 70f;
     [SerializeField] private float _p2Health = 100f;
+
+    [SerializeField] private AttackType _p1AttackType = AttackType.TripleShot;
+    [SerializeField] private AttackType _p2AttackType = AttackType.TripleShot;
 
     public Turn CurrentTurn { get; private set; } = Turn.Player1;
 
@@ -52,6 +61,16 @@ public class GameManager : MonoBehaviour
             else _p2Power = clampedValue;
 
             OnPowerChanged?.Invoke(clampedValue);
+        }
+    }
+
+    public AttackType CurrentAttackType
+    {
+        get => CurrentTurn == Turn.Player1 ? _p1AttackType : _p2AttackType;
+        set
+        {
+            if (CurrentTurn == Turn.Player1) _p1AttackType = value;
+            else _p2AttackType = value;
         }
     }
 
