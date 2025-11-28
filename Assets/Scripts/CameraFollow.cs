@@ -68,44 +68,48 @@ public class CameraFollow : MonoBehaviour
 
     private void UpdateCameraTargets()
     {
-        var pos1 = cannon1.transform.position;
-        var pos2 = cannon2.transform.position;
+        var minX = Mathf.Min(cannon1.transform.position.x, cannon2.transform.position.x);
+        var maxX = Mathf.Max(cannon1.transform.position.x, cannon2.transform.position.x);
+        var minY = Mathf.Min(cannon1.transform.position.y, cannon2.transform.position.y);
+        var maxY = Mathf.Max(cannon1.transform.position.y, cannon2.transform.position.y);
 
-        var midpoint = (pos1 + pos2) / 2f;
+        foreach (var projectile in Projectile.ActiveProjectiles)
+        {
+            if (projectile == null) continue;
+            minX = Mathf.Min(minX, projectile.transform.position.x);
+            maxX = Mathf.Max(maxX, projectile.transform.position.x);
+            minY = Mathf.Min(minY, projectile.transform.position.y);
+            maxY = Mathf.Max(maxY, projectile.transform.position.y);
+        }
 
-        var distance = Vector3.Distance(pos1, pos2);
+        var targetX = (minX + maxX) / 2f;
+        var targetY = (minY + maxY) / 2f + cameraYOffset;
+
+        var width = maxX - minX + sizePadding * 2f;
+        var height = maxY - minY + sizePadding * 2f;
 
         var aspectRatio = (float)Screen.width / Screen.height;
-        var requiredWidth = distance + sizePadding * 2f;
-        var requiredHeight = requiredWidth / aspectRatio;
+        
+        var sizeFromHeight = height / 2f;
+        var sizeFromWidth = width / (aspectRatio * 2f);
 
-        var calculatedSize = Mathf.Max(requiredHeight / 2f, minOrthographicSize);
+        var calculatedSize = Mathf.Max(sizeFromHeight, sizeFromWidth, minOrthographicSize);
 
         if (TerrainGenerator.Instance != null)
         {
-            var minX = TerrainGenerator.Instance.GetMinX();
-            var maxX = TerrainGenerator.Instance.GetMaxX();
-            var terrainWidth = maxX - minX;
+            var terrainMinX = TerrainGenerator.Instance.GetMinX();
+            var terrainMaxX = TerrainGenerator.Instance.GetMaxX();
+            var terrainWidth = terrainMaxX - terrainMinX;
 
             var maxSizeForTerrain = terrainWidth / (aspectRatio * 2f);
 
             calculatedSize = Mathf.Min(calculatedSize, maxSizeForTerrain);
+
+            var cameraHalfWidth = calculatedSize * aspectRatio;
+            targetX = Mathf.Clamp(targetX, terrainMinX + cameraHalfWidth, terrainMaxX - cameraHalfWidth);
         }
 
         _targetOrthographicSize = Mathf.Clamp(calculatedSize, minOrthographicSize, maxOrthographicSize);
-
-        var targetX = midpoint.x;
-        var targetY = midpoint.y + cameraYOffset;
-
-        if (TerrainGenerator.Instance != null)
-        {
-            var minX = TerrainGenerator.Instance.GetMinX();
-            var maxX = TerrainGenerator.Instance.GetMaxX();
-
-            var cameraHalfWidth = _targetOrthographicSize * aspectRatio;
-            targetX = Mathf.Clamp(targetX, minX + cameraHalfWidth, maxX - cameraHalfWidth);
-        }
-
         _targetPosition = new Vector3(targetX, targetY, cameraZOffset);
     }
 

@@ -6,9 +6,20 @@ public class Projectile : MonoBehaviour
   [SerializeField] private float lifeTime = 5f;
   private Rigidbody2D _rb;
 
+  public static System.Collections.Generic.List<Projectile> ActiveProjectiles = new System.Collections.Generic.List<Projectile>();
+
   private void Awake()
   {
     _rb = GetComponent<Rigidbody2D>();
+    ActiveProjectiles.Add(this);
+  }
+
+  private void OnDestroy()
+  {
+      if (ActiveProjectiles.Contains(this))
+      {
+          ActiveProjectiles.Remove(this);
+      }
   }
 
   private void Start()
