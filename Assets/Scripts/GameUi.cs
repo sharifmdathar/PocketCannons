@@ -9,6 +9,7 @@ public class GameUi : MonoBehaviour
     [SerializeField] private TextMeshProUGUI angleTMP;
     [SerializeField] private Button incrementAngleButton;
     [SerializeField] private Button decrementAngleButton;
+    [SerializeField] private TMP_Dropdown weaponDropdown;
     [SerializeField] private Slider powerSlider;
     [SerializeField] private TextMeshProUGUI powerTMP;
     [SerializeField] private Button fireButton;
@@ -59,24 +60,33 @@ public class GameUi : MonoBehaviour
             fireButton.onClick.AddListener(OnFireClicked);
         }
 
+        if (weaponDropdown != null)
+        {
+            weaponDropdown.onValueChanged.AddListener(OnWeaponDropdownChanged);
+            InitializeWeaponDropdown();
+        }
+
         UpdateAngleText(GameManager.Instance.CurrentAngle);
-        UpdatePowerUI(GameManager.Instance.CurrentPower);
+        UpdatePowerUi(GameManager.Instance.CurrentPower);
+        UpdateWeaponUi(GameManager.Instance.CurrentAttackType);
 
         GameManager.Instance.OnAngleChanged += UpdateAngleText;
-        GameManager.Instance.OnPowerChanged += UpdatePowerUI;
-        GameManager.Instance.OnHealthChanged += UpdateHealthUI;
+        GameManager.Instance.OnPowerChanged += UpdatePowerUi;
+        GameManager.Instance.OnAttackTypeChanged += UpdateWeaponUi;
+        GameManager.Instance.OnHealthChanged += UpdateHealthUi;
         GameManager.Instance.OnGameOver += OnGameOver;
 
-        UpdateHealthUI(GameManager.Turn.Player1, GameManager.Instance.GetHealth(GameManager.Turn.Player1));
-        UpdateHealthUI(GameManager.Turn.Player2, GameManager.Instance.GetHealth(GameManager.Turn.Player2));
+        UpdateHealthUi(GameManager.Turn.Player1, GameManager.Instance.GetHealth(GameManager.Turn.Player1));
+        UpdateHealthUi(GameManager.Turn.Player2, GameManager.Instance.GetHealth(GameManager.Turn.Player2));
     }
 
     private void OnDestroy()
     {
         if (GameManager.Instance == null) return;
         GameManager.Instance.OnAngleChanged -= UpdateAngleText;
-        GameManager.Instance.OnPowerChanged -= UpdatePowerUI;
-        GameManager.Instance.OnHealthChanged -= UpdateHealthUI;
+        GameManager.Instance.OnPowerChanged -= UpdatePowerUi;
+        GameManager.Instance.OnAttackTypeChanged -= UpdateWeaponUi;
+        GameManager.Instance.OnHealthChanged -= UpdateHealthUi;
         GameManager.Instance.OnGameOver -= OnGameOver;
     }
 
@@ -117,7 +127,7 @@ public class GameUi : MonoBehaviour
         }
     }
 
-    private void UpdatePowerUI(float newPower)
+    private void UpdatePowerUi(float newPower)
     {
         if (powerSlider != null)
         {
@@ -130,7 +140,7 @@ public class GameUi : MonoBehaviour
         }
     }
 
-    private void UpdateHealthUI(GameManager.Turn player, float health)
+    private void UpdateHealthUi(GameManager.Turn player, float health)
     {
         switch (player)
         {
@@ -161,6 +171,37 @@ public class GameUi : MonoBehaviour
         GameManager.Instance.Fire();
     }
 
+    private void InitializeWeaponDropdown()
+    {
+        if (weaponDropdown == null) return;
+
+        weaponDropdown.ClearOptions();
+        weaponDropdown.AddOptions(new System.Collections.Generic.List<string>
+        {
+            "Single Shot",
+            "Triple Shot"
+        });
+
+        UpdateWeaponUi(GameManager.Instance.CurrentAttackType);
+    }
+
+    private static void OnWeaponDropdownChanged(int index)
+    {
+        var attackType = (GameManager.AttackType)index;
+        GameManager.Instance.CurrentAttackType = attackType;
+    }
+
+    private void UpdateWeaponUi(GameManager.AttackType attackType)
+    {
+        if (weaponDropdown == null) return;
+        
+        var index = (int)attackType;
+        if (index >= 0 && index < weaponDropdown.options.Count)
+        {
+            weaponDropdown.SetValueWithoutNotify(index);
+        }
+    }
+
     public void OnAngleTextClicked()
     {
         if (radialSliderPopup == null) return;
@@ -180,7 +221,7 @@ public class GameUi : MonoBehaviour
         }
     }
 
-    private void OnRegenerateMapClicked()
+    private static void OnRegenerateMapClicked()
     {
         if (TerrainGenerator.Instance == null) return;
 

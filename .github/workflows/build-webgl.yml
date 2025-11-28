@@ -22,21 +22,13 @@ jobs:
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
-          tool-cache: false
-          android: false
-          dotnet: false
-          haskell: false
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
           large-packages: true
-          docker-images: false
+          docker-images: true
           swap-storage: true
-
-      - name: Cache Unity Library
-        uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-${{ runner.os }}-${{ hashFiles('ProjectSettings/ProjectVersion.txt') }}
-          restore-keys: |
-            Library-${{ runner.os }}-
 
       - name: Cache WebGL Build
         uses: actions/cache@v4
@@ -46,30 +38,13 @@ jobs:
           restore-keys: |
             WebGLBuild-${{ runner.os }}-
 
-      - name: Cache Docker image
+      - name: Cache Unity Library
         uses: actions/cache@v4
-        id: docker-cache
         with:
-          path: /tmp/docker-image-cache
-          key: docker-webgl-unity-${{ hashFiles('**/build-webgl.yml') }}
+          path: Library
+          key: Library-${{ runner.os }}-${{ hashFiles('ProjectSettings/ProjectVersion.txt') }}
           restore-keys: |
-            docker-webgl-unity-
-
-      - name: Load Docker image from cache
-        if: steps.docker-cache.outputs.cache-hit == 'true'
-        run: |
-          docker load -i /tmp/docker-image-cache/unity-webgl.tar || true
-
-      - name: Pull Docker image (if not cached)
-        if: steps.docker-cache.outputs.cache-hit != 'true'
-        run: |
-          docker pull unityci/editor:ubuntu-6000.2.10f1-webgl-3.2.0
-
-      - name: Save Docker image to cache
-        if: steps.docker-cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p /tmp/docker-image-cache
-          docker save unityci/editor:ubuntu-6000.2.10f1-webgl-3.2.0 -o /tmp/docker-image-cache/unity-webgl.tar
+            Library-${{ runner.os }}-
 
       - name: Build WebGL
         uses: game-ci/unity-builder@v4

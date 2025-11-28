@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
     public event Action<Turn> OnTurnChanged;
     public event Action<Turn, float> OnHealthChanged;
     public event Action<Turn> OnGameOver;
+    public event Action<AttackType> OnAttackTypeChanged;
 
     [SerializeField] private int _p1Angle = 60;
     [SerializeField] private float _p1Power = 70f;
@@ -33,8 +34,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float _p2Power = 70f;
     [SerializeField] private float _p2Health = 100f;
 
-    [SerializeField] private AttackType _p1AttackType = AttackType.TripleShot;
-    [SerializeField] private AttackType _p2AttackType = AttackType.TripleShot;
+    [SerializeField] private AttackType _p1AttackType = AttackType.SingleShot;
+    [SerializeField] private AttackType _p2AttackType = AttackType.SingleShot;
 
     public Turn CurrentTurn { get; private set; } = Turn.Player1;
 
@@ -71,6 +72,8 @@ public class GameManager : MonoBehaviour
         {
             if (CurrentTurn == Turn.Player1) _p1AttackType = value;
             else _p2AttackType = value;
+
+            OnAttackTypeChanged?.Invoke(value);
         }
     }
 
@@ -150,5 +153,6 @@ public class GameManager : MonoBehaviour
 
         OnAngleChanged?.Invoke(CurrentAngle);
         OnPowerChanged?.Invoke(CurrentPower);
+        OnAttackTypeChanged?.Invoke(CurrentAttackType);
     }
 }
