@@ -82,6 +82,15 @@ public class CameraFollow : MonoBehaviour
             maxY = Mathf.Max(maxY, projectile.transform.position.y);
         }
 
+        foreach (var projectile in TerrainDeformProjectile.ActiveProjectiles)
+        {
+            if (projectile == null) continue;
+            minX = Mathf.Min(minX, projectile.transform.position.x);
+            maxX = Mathf.Max(maxX, projectile.transform.position.x);
+            minY = Mathf.Min(minY, projectile.transform.position.y);
+            maxY = Mathf.Max(maxY, projectile.transform.position.y);
+        }
+
         var targetX = (minX + maxX) / 2f;
         var targetY = (minY + maxY) / 2f + cameraYOffset;
 

@@ -55,7 +55,7 @@ jobs:
         with:
           targetPlatform: WebGL
           allowDirtyBuild: true
-          customImage: 'unityci/editor:ubuntu-6000.2.10f1-webgl-3.2.0'
+          customImage: 'unityci/editor:ubuntu-6000.3.2f1-webgl-3.2.1'
           buildName: WebGL
           buildsPath: build
 

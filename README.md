@@ -2,7 +2,7 @@
 
 A 2D turn-based artillery game built with Unity, inspired by classic games like Worms and Scorched Earth. Two players take turns firing cannons at each other on procedurally generated terrain.
 
-![Unity Version](https://img.shields.io/badge/Unity-6000.2.13f1-blue)
+![Unity Version](https://img.shields.io/badge/Unity-6000.3.2f1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎮 Gameplay
@@ -29,7 +29,7 @@ A 2D turn-based artillery game built with Unity, inspired by classic games like 
 
 ### Prerequisites
 
-- Unity 6000.2.13f1 or compatible version
+- Unity 6000.3.2f1 or compatible version
 - Git LFS (for handling large binary assets)
 
 ### Installation
@@ -43,7 +43,7 @@ cd PocketCannons
 2. Open the project in Unity:
    - Launch Unity Hub
    - Click "Add" and select the project folder
-   - Ensure Unity 6000.2.13f1 is installed
+   - Ensure Unity 6000.3.2f1 is installed
    - Open the project
 
 3. Open the game scene:

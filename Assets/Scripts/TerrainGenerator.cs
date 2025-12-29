@@ -14,6 +14,10 @@ public class TerrainGenerator : MonoBehaviour
     private float _seed;
     private Mesh _mesh;
     private PolygonCollider2D _collider;
+    private float[] _originalHeights;
+    private int _verticesCount;
+    private float _startX;
+    private float _step;
 
     private void Awake()
     {
@@ -31,34 +35,36 @@ public class TerrainGenerator : MonoBehaviour
     {
         _seed = Random.Range(-10000f, 10000f);
 
-        var verticesCount = width * resolution;
-        var vertices = new Vector3[verticesCount * 2];
-        var triangles = new int[(verticesCount - 1) * 6];
-        var path = new Vector2[verticesCount + 2];
+        _verticesCount = width * resolution;
+        var vertices = new Vector3[_verticesCount * 2];
+        var triangles = new int[(_verticesCount - 1) * 6];
+        var path = new Vector2[_verticesCount + 2];
+        _originalHeights = new float[_verticesCount];
 
-        var startX = -width / 2f;
-        var step = 1f / resolution;
-        for (var i = 0; i < verticesCount; i++)
+        _startX = -width / 2f;
+        _step = 1f / resolution;
+        for (var i = 0; i < _verticesCount; i++)
         {
-            var x = startX + i * step;
+            var x = _startX + i * _step;
             var y = GetHeight(x);
+            _originalHeights[i] = y;
             vertices[i] = new Vector3(x, y, 0);
-            vertices[i + verticesCount] = new Vector3(x, y - groundDepth, 0);
+            vertices[i + _verticesCount] = new Vector3(x, y - groundDepth, 0);
 
             path[i] = new Vector2(x, y);
         }
 
-        path[verticesCount] = new Vector2(startX + width - step, -groundDepth);
-        path[verticesCount + 1] = new Vector2(startX, -groundDepth);
+        path[_verticesCount] = new Vector2(_startX + width - _step, -groundDepth);
+        path[_verticesCount + 1] = new Vector2(_startX, -groundDepth);
         _collider.SetPath(0, path);
 
-        for (var i = 0; i < verticesCount - 1; i++)
+        for (var i = 0; i < _verticesCount - 1; i++)
         {
             var root = i * 6;
             var tl = i;
             var tr = i + 1;
-            var bl = i + verticesCount;
-            var br = i + verticesCount + 1;
+            var bl = i + _verticesCount;
+            var br = i + _verticesCount + 1;
 
             triangles[root] = tl;
             triangles[root + 1] = br;
@@ -79,7 +85,27 @@ public class TerrainGenerator : MonoBehaviour
 
     public float GetHeight(float x)
     {
-        return Mathf.PerlinNoise((x + _seed) * noiseFrequency, 0) * heightMultiplier;
+        if (_mesh == null || _mesh.vertices == null || _mesh.vertices.Length == 0)
+        {
+            return Mathf.PerlinNoise((x + _seed) * noiseFrequency, 0) * heightMultiplier;
+        }
+
+        var vertices = _mesh.vertices;
+        var closestIndex = 0;
+        var minDistance = float.MaxValue;
+
+        for (var i = 0; i < _verticesCount; i++)
+        {
+            var vertexX = vertices[i].x;
+            var distance = Mathf.Abs(vertexX - x);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closestIndex = i;
+            }
+        }
+
+        return vertices[closestIndex].y;
     }
 
     public float GetMinX()
@@ -96,5 +122,55 @@ public class TerrainGenerator : MonoBehaviour
     public bool IsWithinBounds(float x)
     {
         return x >= GetMinX() && x <= GetMaxX();
+    }
+
+    public void DeformTerrain(Vector2 center, float radius)
+    {
+        if (_mesh == null || _originalHeights == null) return;
+
+        var vertices = _mesh.vertices;
+        var path = new Vector2[_verticesCount + 2];
+        var modified = false;
+
+        for (var i = 0; i < _verticesCount; i++)
+        {
+            var x = _startX + i * _step;
+            var distance = Vector2.Distance(new Vector2(x, _originalHeights[i]), center);
+
+            if (distance <= radius)
+            {
+                var depth = radius - distance;
+                var newHeight = _originalHeights[i] - depth;
+                vertices[i] = new Vector3(x, newHeight, 0);
+                vertices[i + _verticesCount] = new Vector3(x, newHeight - groundDepth, 0);
+                path[i] = new Vector2(x, newHeight);
+                modified = true;
+            }
+            else
+            {
+                vertices[i] = new Vector3(x, _originalHeights[i], 0);
+                vertices[i + _verticesCount] = new Vector3(x, _originalHeights[i] - groundDepth, 0);
+                path[i] = new Vector2(x, _originalHeights[i]);
+            }
+        }
+
+        if (!modified) return;
+
+        path[_verticesCount] = new Vector2(_startX + width - _step, -groundDepth);
+        path[_verticesCount + 1] = new Vector2(_startX, -groundDepth);
+        _collider.SetPath(0, path);
+
+        _mesh.vertices = vertices;
+        _mesh.RecalculateNormals();
+
+        var uvs = new Vector2[vertices.Length];
+        for (var i = 0; i < vertices.Length; i++) uvs[i] = new Vector2(vertices[i].x, vertices[i].y);
+        _mesh.uv = uvs;
+
+        var cannons = FindObjectsByType<CannonController>(FindObjectsSortMode.None);
+        foreach (var cannon in cannons)
+        {
+            cannon.SnapToGround();
+        }
     }
 }

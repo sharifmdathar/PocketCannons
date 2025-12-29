@@ -54,13 +54,13 @@ jobs:
       - name: Pull Docker image (if not cached)
         if: steps.docker-cache.outputs.cache-hit != 'true'
         run: |
-          docker pull unityci/editor:ubuntu-6000.2.10f1-linux-il2cpp-3.2.0
+          docker pull unityci/editor:ubuntu-6000.3.2f1-linux-il2cpp-3.2.1
 
       - name: Save Docker image to cache
         if: steps.docker-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p /tmp/docker-image-cache
-          docker save unityci/editor:ubuntu-6000.2.10f1-linux-il2cpp-3.2.0 -o /tmp/docker-image-cache/unity-linux.tar
+          docker save unityci/editor:ubuntu-6000.3.2f1-linux-il2cpp-3.2.1 -o /tmp/docker-image-cache/unity-linux.tar
 
       - name: Build Linux
         uses: game-ci/unity-builder@v4
@@ -70,7 +70,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: StandaloneLinux64
-          customImage: unityci/editor:ubuntu-6000.2.10f1-linux-il2cpp-3.2.0
+          customImage: unityci/editor:ubuntu-6000.3.2f1-linux-il2cpp-3.2.1
           buildName: StandaloneLinux64
           buildsPath: build
           allowDirtyBuild: true
@@ -117,7 +117,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: StandaloneWindows64
-          customImage: unityci/editor:windows-6000.2.10f1-windows-il2cpp-3.2.0
+          customImage: unityci/editor:windows-6000.3.2f1-windows-il2cpp-3.2.1
           buildName: StandaloneWindows64
           buildsPath: build
           allowDirtyBuild: true

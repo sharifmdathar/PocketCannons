@@ -179,7 +179,8 @@ public class GameUi : MonoBehaviour
         weaponDropdown.AddOptions(new System.Collections.Generic.List<string>
         {
             "Single Shot",
-            "Triple Shot"
+            "Triple Shot",
+            "Terrain Deform"
         });
 
         UpdateWeaponUi(GameManager.Instance.CurrentAttackType);

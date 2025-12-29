@@ -7,6 +7,7 @@ public class CannonController : MonoBehaviour
     public GameManager.Turn Owner => owner;
     [SerializeField] private Transform barrelTransform;
     [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] private GameObject terrainDeformProjectilePrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private float maxForce = 20f;
     [SerializeField] private GameObject turnIndicator;
@@ -132,6 +133,9 @@ public class CannonController : MonoBehaviour
             case GameManager.AttackType.TripleShot:
                 FireTripleShot();
                 break;
+            case GameManager.AttackType.TerrainDeform:
+                FireTerrainDeform();
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -140,6 +144,17 @@ public class CannonController : MonoBehaviour
     private void FireSingleProjectile()
     {
         CreateAndLaunchProjectile(firePoint.position, firePoint.rotation);
+    }
+
+    private void FireTerrainDeform()
+    {
+        if (terrainDeformProjectilePrefab == null)
+        {
+            FireSingleProjectile();
+            return;
+        }
+
+        CreateAndLaunchTerrainDeformProjectile(firePoint.position, firePoint.rotation);
     }
 
     private void FireTripleShot()
@@ -173,6 +188,23 @@ public class CannonController : MonoBehaviour
     private void CreateAndLaunchProjectile(Vector3 position, Quaternion rotation, Vector2 direction, float forceMagnitude)
     {
         var projectile = Instantiate(projectilePrefab, position, rotation);
+        Rigidbody2D rb = projectile.GetComponent<Rigidbody2D>();
+
+        if (rb == null) return;
+        var force = direction * forceMagnitude;
+        rb.AddForce(force, ForceMode2D.Impulse);
+    }
+
+    private void CreateAndLaunchTerrainDeformProjectile(Vector3 position, Quaternion rotation)
+    {
+        var powerPercentage = GameManager.Instance.CurrentPower / 100f;
+        Vector2 force = firePoint.right * (maxForce * powerPercentage);
+        CreateAndLaunchTerrainDeformProjectile(position, rotation, firePoint.right, force.magnitude);
+    }
+
+    private void CreateAndLaunchTerrainDeformProjectile(Vector3 position, Quaternion rotation, Vector2 direction, float forceMagnitude)
+    {
+        var projectile = Instantiate(terrainDeformProjectilePrefab, position, rotation);
         Rigidbody2D rb = projectile.GetComponent<Rigidbody2D>();
 
         if (rb == null) return;

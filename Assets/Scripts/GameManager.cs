@@ -12,7 +12,8 @@ public class GameManager : MonoBehaviour
     public enum AttackType
     {
         SingleShot,
-        TripleShot
+        TripleShot,
+        TerrainDeform
     }
 
     public static GameManager Instance { get; private set; }
