@@ -135,12 +135,13 @@ public class TerrainGenerator : MonoBehaviour
         for (var i = 0; i < _verticesCount; i++)
         {
             var x = _startX + i * _step;
-            var distance = Vector2.Distance(new Vector2(x, _originalHeights[i]), center);
+            var currentHeight = vertices[i].y;
+            var distance = Vector2.Distance(new Vector2(x, currentHeight), center);
 
             if (distance <= radius)
             {
                 var depth = radius - distance;
-                var newHeight = _originalHeights[i] - depth;
+                var newHeight = currentHeight - depth;
                 vertices[i] = new Vector3(x, newHeight, 0);
                 vertices[i + _verticesCount] = new Vector3(x, newHeight - groundDepth, 0);
                 path[i] = new Vector2(x, newHeight);
@@ -148,9 +149,9 @@ public class TerrainGenerator : MonoBehaviour
             }
             else
             {
-                vertices[i] = new Vector3(x, _originalHeights[i], 0);
-                vertices[i + _verticesCount] = new Vector3(x, _originalHeights[i] - groundDepth, 0);
-                path[i] = new Vector2(x, _originalHeights[i]);
+                vertices[i] = new Vector3(x, currentHeight, 0);
+                vertices[i + _verticesCount] = new Vector3(x, currentHeight - groundDepth, 0);
+                path[i] = new Vector2(x, currentHeight);
             }
         }
 

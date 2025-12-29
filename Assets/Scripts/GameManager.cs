@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour
     public event Action<Turn, float> OnHealthChanged;
     public event Action<Turn> OnGameOver;
     public event Action<AttackType> OnAttackTypeChanged;
+    public event Action<float> OnWindChanged;
 
     [SerializeField] private int _p1Angle = 60;
     [SerializeField] private float _p1Power = 70f;
@@ -38,7 +39,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AttackType _p1AttackType = AttackType.SingleShot;
     [SerializeField] private AttackType _p2AttackType = AttackType.SingleShot;
 
+    [Header("Wind Settings")]
+    [SerializeField] private float minWindStrength = -5f;
+    [SerializeField] private float maxWindStrength = 5f;
+    [SerializeField] private bool windChangesPerTurn = true;
+
+    private float _currentWindStrength = 0f;
+
     public Turn CurrentTurn { get; private set; } = Turn.Player1;
+
+    public float WindStrength => _currentWindStrength;
 
     public int CurrentAngle
     {
@@ -88,6 +98,8 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        
+        GenerateNewWind();
     }
 
     public void IncrementAngle()
@@ -152,8 +164,19 @@ public class GameManager : MonoBehaviour
         CurrentTurn = CurrentTurn == Turn.Player1 ? Turn.Player2 : Turn.Player1;
         OnTurnChanged?.Invoke(CurrentTurn);
 
+        if (windChangesPerTurn)
+        {
+            GenerateNewWind();
+        }
+
         OnAngleChanged?.Invoke(CurrentAngle);
         OnPowerChanged?.Invoke(CurrentPower);
         OnAttackTypeChanged?.Invoke(CurrentAttackType);
+    }
+
+    private void GenerateNewWind()
+    {
+        _currentWindStrength = UnityEngine.Random.Range(minWindStrength, maxWindStrength);
+        OnWindChanged?.Invoke(_currentWindStrength);
     }
 }

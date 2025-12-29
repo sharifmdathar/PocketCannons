@@ -24,6 +24,8 @@ public class GameUi : MonoBehaviour
     [SerializeField] private TextMeshProUGUI winnerText;
     [SerializeField] private Button restartButton;
     [SerializeField] private Button regenerateMapButton;
+    [SerializeField] private TextMeshProUGUI windText;
+    [SerializeField] private RectTransform windArrow;
 
     private void Start()
     {
@@ -75,9 +77,11 @@ public class GameUi : MonoBehaviour
         GameManager.Instance.OnAttackTypeChanged += UpdateWeaponUi;
         GameManager.Instance.OnHealthChanged += UpdateHealthUi;
         GameManager.Instance.OnGameOver += OnGameOver;
+        GameManager.Instance.OnWindChanged += UpdateWindUi;
 
         UpdateHealthUi(GameManager.Turn.Player1, GameManager.Instance.GetHealth(GameManager.Turn.Player1));
         UpdateHealthUi(GameManager.Turn.Player2, GameManager.Instance.GetHealth(GameManager.Turn.Player2));
+        UpdateWindUi(GameManager.Instance.WindStrength);
     }
 
     private void OnDestroy()
@@ -88,6 +92,7 @@ public class GameUi : MonoBehaviour
         GameManager.Instance.OnAttackTypeChanged -= UpdateWeaponUi;
         GameManager.Instance.OnHealthChanged -= UpdateHealthUi;
         GameManager.Instance.OnGameOver -= OnGameOver;
+        GameManager.Instance.OnWindChanged -= UpdateWindUi;
     }
 
     private void OnGameOver(GameManager.Turn winner)
@@ -232,6 +237,46 @@ public class GameUi : MonoBehaviour
         foreach (var c in cannons)
         {
             c.SnapToGround();
+        }
+    }
+
+    private void UpdateWindUi(float windStrength)
+    {
+        var strength = Mathf.Abs(windStrength);
+        var normalizedStrength = Mathf.Clamp01(strength / 5f);
+        var windColor = Color.Lerp(Color.green, Color.red, normalizedStrength);
+        
+        if (windText != null)
+        {
+            var direction = windStrength > 0 ? "+" : "-";
+            windText.text = $"Wind: {direction}{strength:F1}";
+            windText.color = windColor;
+        }
+
+        if (windArrow != null)
+        {
+            var angle = windStrength > 0 ? 0f : 180f;
+            windArrow.localRotation = Quaternion.Euler(0, 0, angle);
+            windArrow.localScale = new Vector3(normalizedStrength, 1f, 1f);
+            
+            var arrowhead = windArrow.Find("Arrowhead");
+            if (arrowhead != null)
+            {
+                var inverseScale = normalizedStrength > 0 ? 1f / normalizedStrength : 1f;
+                arrowhead.localScale = new Vector3(1f,inverseScale, 1f);
+                
+                var arrowheadImage = arrowhead.GetComponent<UnityEngine.UI.Image>();
+                if (arrowheadImage != null)
+                {
+                    arrowheadImage.color = windColor;
+                }
+            }
+            
+            var arrowImage = windArrow.GetComponent<UnityEngine.UI.Image>();
+            if (arrowImage != null)
+            {
+                arrowImage.color = windColor;
+            }
         }
     }
 }
