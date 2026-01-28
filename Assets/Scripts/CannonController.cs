@@ -55,7 +55,7 @@ public class CannonController : MonoBehaviour
     {
         if (turnIndicator == null || !turnIndicator.activeSelf) return;
         var yOffset = Mathf.Sin(Time.time * indicatorSpeed) * indicatorAmplitude;
-        turnIndicator.transform.localPosition = _indicatorInitialPos + Vector3.up * yOffset;
+        turnIndicator.transform.localPosition = _indicatorInitialPos + (Vector3.up * yOffset);
     }
 
     private void OnDestroy()
@@ -73,7 +73,7 @@ public class CannonController : MonoBehaviour
         if (GameManager.Instance.CurrentTurn != owner) return;
 
         var moveAmount = direction * moveSpeed * Time.deltaTime;
-        var targetPos = transform.position + Vector3.right * moveAmount;
+        var targetPos = transform.position + (Vector3.right * moveAmount);
 
         if (TerrainGenerator.Instance != null)
         {
@@ -228,7 +228,7 @@ public class CannonController : MonoBehaviour
     {
         if (crosshairIndicator == null || firePoint == null) return;
 
-        crosshairIndicator.transform.position = firePoint.position + firePoint.right * crosshairDistance;
+        crosshairIndicator.transform.position = firePoint.position + (firePoint.right * crosshairDistance);
         crosshairIndicator.transform.rotation = firePoint.rotation;
     }
 
